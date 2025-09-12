@@ -13,12 +13,13 @@ export const JobAdSchema = z
 		openDay: z.coerce.date(),
 		closeDay: z.coerce.date(),
 	})
+	.strict()
 	// salaryEnd >= salaryStart (when both present)
 	.refine(
 		(data) =>
 			data.salaryStart == null ||
 			data.salaryEnd == null ||
-			data.salaryStart >= data.salaryEnd,
+			data.salaryStart <= data.salaryEnd,
 		{ message: "salaryEnd must be larger than salaryStart." }
 	)
 	// openDay ≤ closeDay

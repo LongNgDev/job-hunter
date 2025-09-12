@@ -29,12 +29,11 @@ router.get("/health", (_req: Request, res: Response) => {
 // CREATE
 router.post("/", validate(JobAdSchema), (req: Request, res: Response) => {
 	const id = uuidv4();
-	const newJob: JobAd = {
+	const newJob = {
 		id,
 		...req.body,
 	};
 	JOBS.set(id, newJob);
-	console.log(`Created an entry at ${id}`);
 	res.status(201).json(newJob);
 });
 
