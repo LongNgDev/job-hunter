@@ -1,3 +1,2 @@
-confluent-kafka==2.6.0
-kafka
+kafka-python==2.2.15
 redis==5.0.7

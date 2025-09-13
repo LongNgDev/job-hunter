@@ -10,15 +10,9 @@ REDIS_URL  = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 TTL_SEC    = int(os.getenv("STATUS_TTL", "604800"))  # 7 days
 
 
-redis = redisDB.from_url(REDIS_URL)
+# redis = redisDB.from_url(REDIS_URL)
 
-""" consumer = KafkaConsumer({
-    "bootstrap.servers": BROKERS,
-    "group_id": GROUP_ID,
-    "auto_offset_reset": "earliest",
-    "enable_auto_commit": True,
-})
- """
+
 consumer = KafkaConsumer(
     TOPIC,
     bootstrap_servers= BROKERS,
@@ -46,8 +40,8 @@ signal.signal(signal.SIGTERM, _stop)
 
 def set_status(job_id, **fields):
     key = f"job:{job_id}"
-    redis.hset(key, mapping=fields)
-    redis.expire(key, TTL_SEC)
+    # redis.hset(key, mapping=fields)
+    # redis.expire(key, TTL_SEC)
 
 def process(job):
     # TODO: your real logic here
@@ -58,18 +52,25 @@ def process(job):
 
 def main():
     try:
-        for msg in consumer:
-            if stop:
-                break
-            job = msg.value   # already a dict now
-            jid = job["id"]
+        while not stop:
+            # poll returns a dict: {TopicPartition: [messages]}
+            records = consumer.poll(timeout_ms=1000)
+            if not records:
+                continue
 
-            set_status(jid, status="processing", progress=10)
-            try:
-                res = process(job)
-                set_status(jid, status="done", progress=100, result=json.dumps(res))
-            except Exception as e:
-                set_status(jid, status="failed", error=str(e))
+            for _tp, msgs in records.items():
+                for msg in msgs:
+                    job = msg.value
+                    jid = job["id"]
+
+                    set_status(jid, status="processing", progress=10)
+                    try:
+                        res = process(job)
+                        set_status(jid, status="done", progress=100, result=json.dumps(res))
+                    except Exception as e:
+                        set_status(jid, status="failed", error=str(e))
+    except KeyboardInterrupt:
+        print("👋 Stopping worker…")
     finally:
         consumer.close()
 
