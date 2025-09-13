@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { validate } from "../middleware/validate.js";
 import { JobAdSchema } from "../schema/jobAds.schema.js";
+import { producer } from "../kafka/producer.js";
 
 const router: Router = Router();
 
@@ -27,13 +28,20 @@ router.get("/health", (_req: Request, res: Response) => {
 
 /* follow CRUD Method */
 // CREATE
-router.post("/", validate(JobAdSchema), (req: Request, res: Response) => {
+router.post("/", validate(JobAdSchema), async (req: Request, res: Response) => {
 	const id = uuidv4();
 	const newJob = {
 		id,
 		...req.body,
 	};
-	JOBS.set(id, newJob);
+
+	// Produce to Kafka
+	await producer.send({
+		topic: "job.created",
+		messages: [{ key: id, value: JSON.stringify(newJob) }],
+	});
+
+	// JOBS.set(id, newJob);
 	res.status(201).json(newJob);
 });
 
