@@ -5,9 +5,7 @@ import redis as redisDB
 from pymongo import MongoClient
 
 # Import func
-from mongo import save_job
-
-
+from mongo import MongoDB 
 
 BROKERS    = os.getenv("KAFKA_BROKERS", "localhost:19092")
 GROUP_ID   = os.getenv("KAFKA_GROUP", "jobs-worker-1")
@@ -16,6 +14,8 @@ REDIS_URL  = os.getenv("REDIS_URI", "redis://localhost:6379/0")
 MONGO_URI  = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 TTL_SEC    = int(os.getenv("STATUS_TTL", "604800"))  # 7 days
 
+
+mongoClient = MongoDB()
 
 """ redis = redisDB.Redis(host="localhost", port=6379, password="admin", decode_responses=True)
 try:
@@ -66,7 +66,7 @@ def set_status(job_id, **fields):
 
 def process(job):
     # TODO: your real logic here
-    save_job(job)
+    mongoClient.save_job(job)
     time.sleep(0.5)
     return {"ok": True, "notes": "processed!"}
 

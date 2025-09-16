@@ -10,7 +10,7 @@ KAFKA_TOPIC   = os.getenv("TOPIC", "job.created")
 REDIS_URI     = os.getenv("REDIS_URI", "redis://localhost:6379/0")
 
 # Mongo
-MONGO_URI     = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+MONGO_URI     = os.getenv("MONGO_URI", "mongodb://admin:admin@localhost:27017/")
 MONGO_DB      = os.getenv("MONGO_DB", "jobhunter")   # you can change this
 MONGO_COLL    = os.getenv("MONGO_COLL", "jobs")
 
