@@ -81,7 +81,7 @@ def main():
             for _tp, msgs in records.items():
                 for msg in msgs:
                     job = msg.value
-                    jid = job["id"]
+                    jid = job["url"]
 
                     set_status(jid, status="processing", progress=10)
                     try:

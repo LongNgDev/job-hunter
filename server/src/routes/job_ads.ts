@@ -3,11 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import { validate } from "../middleware/validate.js";
 import { JobAdSchema } from "../schema/jobAds.schema.js";
 import { producer } from "../kafka/producer.js";
+import { url } from "inspector";
 
 const router: Router = Router();
 
 type JobAd = {
-	id: string;
+	// id: string;
 	url: string;
 	companyName?: string;
 	recruiterName?: string;
@@ -15,8 +16,8 @@ type JobAd = {
 	jobDescription: string;
 	salaryStart?: number;
 	salaryEnd?: number;
-	openDay: Date;
-	closeDay: Date;
+	openDay?: Date;
+	closeDay?: Date;
 };
 
 const JOBS = new Map<string, JobAd>();
@@ -29,16 +30,16 @@ router.get("/health", (_req: Request, res: Response) => {
 /* follow CRUD Method */
 // CREATE
 router.post("/", validate(JobAdSchema), async (req: Request, res: Response) => {
-	const id = uuidv4();
+	// const id = uuidv4();
+	const url = req.body["url"];
 	const newJob = {
-		id,
 		...req.body,
 	};
 
 	// Produce to Kafka
 	await producer.send({
 		topic: "job.created",
-		messages: [{ key: id, value: JSON.stringify(newJob) }],
+		messages: [{ key: url, value: JSON.stringify(newJob) }],
 	});
 
 	console.log(newJob);

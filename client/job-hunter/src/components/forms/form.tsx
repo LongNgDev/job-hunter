@@ -37,8 +37,8 @@ const formSchema = z.object({
 	salaryStart: z.coerce.number().nonnegative().optional().nullable(),
 	salaryEnd: z.coerce.number().nonnegative().optional().nullable(),
 	// allow ISO strings from client, coerce to Date
-	openDate: z.coerce.date().optional(),
-	closeDate: z.coerce.date().optional(),
+	openDate: z.coerce.date().optional().nullable(),
+	closeDate: z.coerce.date().optional().nullable(),
 });
 
 function JobAdForm() {
@@ -67,6 +67,9 @@ function JobAdForm() {
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		// Do something with the form values.
 
+		if (!values.openDate) values.openDate = null;
+		if (!values.closeDate) values.closeDate = null;
+
 		try {
 			const res = await fetch("http://localhost:4000/api/jobs", {
 				method: "POST",
@@ -74,7 +77,7 @@ function JobAdForm() {
 				body: JSON.stringify(values),
 			});
 			if (!res.ok) throw new Error("Failed to submit");
-			alert("🎉 Job saved!");
+			alert(`🎉 Job saved!\n${JSON.stringify(values, null, 2)}`);
 			setSubmitting(true);
 			form.reset();
 		} catch (err: unknown) {
@@ -89,7 +92,7 @@ function JobAdForm() {
 			<Form {...form}>
 				<form
 					onSubmit={form.handleSubmit(onSubmit)}
-					className="flex flex-col gap-4 border p-6"
+					className="flex flex-col gap-4 border bg-accent-foreground/1 rounded-2xl p-6"
 				>
 					<FormField
 						control={form.control}
@@ -276,7 +279,7 @@ function JobAdForm() {
 										<PopoverContent className="w-auto p-0">
 											<Calendar
 												mode="single"
-												selected={field.value}
+												selected={field.value as Date | undefined}
 												onSelect={field.onChange}
 											/>
 										</PopoverContent>
@@ -310,7 +313,7 @@ function JobAdForm() {
 										<PopoverContent className="w-auto p-0">
 											<Calendar
 												mode="single"
-												selected={field.value}
+												selected={field.value as Date | undefined}
 												onSelect={field.onChange}
 											/>
 										</PopoverContent>
