@@ -41,6 +41,8 @@ router.post("/", validate(JobAdSchema), async (req: Request, res: Response) => {
 		messages: [{ key: id, value: JSON.stringify(newJob) }],
 	});
 
+	console.log(newJob);
+
 	// JOBS.set(id, newJob);
 	res.status(201).json(newJob);
 });

@@ -2,9 +2,31 @@ import express, { NextFunction, Request, Response } from "express";
 import { env } from "./config/env.js";
 import api from "./routes/index.js";
 import { initProducer } from "./kafka/producer.js";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
+
+// allow your Next.js dev origin
+app.use(
+	cors({
+		origin: "http://localhost:3000",
+		credentials: true, // if you plan to send cookies/auth
+	})
+);
+
+// optional: handle preflight explicitly (some hosts need this)
+app.use((req, res, next) => {
+	res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+	res.header(
+		"Access-Control-Allow-Methods",
+		"GET,POST,PUT,PATCH,DELETE,OPTIONS"
+	);
+	res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+	res.header("Access-Control-Allow-Credentials", "true");
+	if (req.method === "OPTIONS") return res.sendStatus(204);
+	next();
+});
 
 // mount all route under /api
 app.use("/api", api);

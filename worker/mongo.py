@@ -1,6 +1,6 @@
 
 from datetime import datetime, date
-from typing import TypedDict
+from typing import TypedDict, Optional
 
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -14,10 +14,10 @@ class JobPayLoad(TypedDict):
    recruiterName: str
    jobTitle: str
    jobDescription: str
-   salaryStart: int
-   salaryEnd: int
-   openDate: date
-   closeDate:date
+   salaryStart: Optional[int]
+   salaryEnd: Optional[int]
+   openDate: Optional[date]
+   closeDate: Optional[date]
 
 class MongoDB:
   def __init__(self):
@@ -52,7 +52,7 @@ class MongoDB:
         raise Exception("Collection is not exist!")
       
       res = self.__coll.update_one(
-         {"id": doc["id"]},
+         {"url": doc["url"]},
          {"$set": doc, "$setOnInsert": {"processedAt": datetime.now()}},
          upsert=True
       )
@@ -60,7 +60,7 @@ class MongoDB:
       print({
         "ok": True,
         "upserted": res.upserted_id is not None,
-        "id": doc["id"],
+        "url": doc["url"],
         "matched_count": res.matched_count,
         "modified_count": res.modified_count,
       })

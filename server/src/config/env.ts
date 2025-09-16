@@ -1,6 +1,10 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
 
 const get = (key: string, fallback?: string) => {
+	console.log(process.env.PORT);
 	const v = process.env[key];
 	if (v === undefined) {
 		if (fallback !== undefined) return fallback;
