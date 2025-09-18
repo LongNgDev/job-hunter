@@ -39,8 +39,8 @@ type JobAd = {
 	jobDescription: string;
 	salaryStart?: number;
 	salaryEnd?: number;
-	openDay?: Date;
-	closeDay?: Date;
+	openDate?: Date;
+	closeDate?: Date;
 };
 
 /* ---------------------------- Helper Utilities ---------------------------- */
@@ -99,6 +99,12 @@ router.get("/:id/status", async (req: Request, res: Response) => {
 router.post("/", validate(JobAdSchema), async (req: Request, res: Response) => {
 	const id = uuidv4();
 	const url: string = req.body.url;
+
+	const isExist = await col.findOne({ url: url });
+
+	if (isExist) {
+		return res.status(409).json({ Error: "Data already existed!" });
+	}
 
 	const newJob: JobAd = {
 		id,

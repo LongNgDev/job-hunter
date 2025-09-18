@@ -70,6 +70,8 @@ function JobAdForm() {
 		if (!values.closeDate) values.closeDate = null;
 
 		try {
+			const check = await fetch("http://localhost:4000/api/jobs/");
+
 			const res = await fetch("http://localhost:4000/api/jobs", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },

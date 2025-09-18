@@ -1,5 +1,5 @@
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import TypedDict, Optional
 
 from pymongo import MongoClient, ASCENDING
@@ -53,7 +53,7 @@ class MongoDB:
       
       res = self.__coll.update_one(
          {"id": doc["id"]},
-         {"$set": doc, "$setOnInsert": {"processedAt": datetime.now()}},
+         {"$set": doc, "$setOnInsert": {"processedAt": datetime.now(timezone.utc)}},
          upsert=True
       )
 
