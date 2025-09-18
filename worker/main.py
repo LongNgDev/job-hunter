@@ -1,11 +1,12 @@
 import json, os, signal, sys, time
 
-from kafka import KafkaConsumer
-import redis as redisDB
+from kafka import KafkaConsumer # type: ignore
+# import redis as redisDB
 from pymongo import MongoClient
 
 # Import func
 from mongo import MongoDB 
+import worker.redis_publisher as redis_publisher
 
 BROKERS    = os.getenv("KAFKA_BROKERS", "localhost:19092")
 GROUP_ID   = os.getenv("KAFKA_GROUP", "jobs-worker-1")
@@ -17,22 +18,6 @@ TTL_SEC    = int(os.getenv("STATUS_TTL", "604800"))  # 7 days
 
 mongoClient = MongoDB()
 
-""" redis = redisDB.Redis(host="localhost", port=6379, password="admin", decode_responses=True)
-try:
-    redis.ping()
-    print("[worker] connected to Redis")
-except Exception as e:
-    print("[worker] redis not ready (continuing):", e)
-
-
-try:
-    mongo = MongoClient(MONGO_URI)
-    print("[worker] connect to Mongo")
-    mongo.close()
-
-except Exception as e:
-    print("[worker] redis not ready (continuing):", e) """
-
 
 consumer = KafkaConsumer(
     TOPIC,
@@ -40,7 +25,7 @@ consumer = KafkaConsumer(
     group_id=GROUP_ID,
     auto_offset_reset= "earliest",
     enable_auto_commit= True,
-    value_deserializer=lambda m: json.loads(m.decode('ascii'))
+    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
 )
 
 
@@ -65,7 +50,6 @@ def set_status(job_id, **fields):
     # redis.expire(key, TTL_SEC)
 
 def process(job):
-    # TODO: your real logic here
     mongoClient.save_job(job)
     time.sleep(0.5)
     return {"ok": True, "notes": "processed!"}
@@ -91,6 +75,8 @@ def main():
                         set_status(jid, status="failed", error=str(e))
     except KeyboardInterrupt:
         print("👋 Stopping worker…")
+    except Exception as e:
+        print(f"Errors: {e}")
     finally:
         consumer.close()
 

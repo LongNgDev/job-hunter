@@ -29,6 +29,6 @@ export const JobAdSchema = z
 			data.closeDate == null ||
 			data.openDate <= data.closeDate,
 		{
-			message: "closeDay must be on/after openDay.",
+			message: "closeDate must be on/after openDate.",
 		}
 	);

@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { env } from "./config/env.js";
 import api from "./routes/index.js";
 import { initProducer } from "./kafka/producer.js";
+import { initSubscriber } from "./redis/subscriber.js";
 import cors from "cors";
 
 const app = express();
@@ -52,4 +53,5 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(env.port, async () => {
 	console.log(`http://localhost:${env.port}`);
 	await initProducer(); // connect Kafka producer
+	await initSubscriber(); //connect Redis subsciber
 });

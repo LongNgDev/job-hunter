@@ -3,12 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import { validate } from "../middleware/validate.js";
 import { JobAdSchema } from "../schema/jobAds.schema.js";
 import { producer } from "../kafka/producer.js";
-import { url } from "inspector";
+import { subscriber } from "../redis/subscriber.js";
 
 const router: Router = Router();
 
 type JobAd = {
-	// id: string;
+	_id: string;
 	url: string;
 	companyName?: string;
 	recruiterName?: string;
