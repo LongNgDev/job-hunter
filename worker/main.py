@@ -2,11 +2,12 @@ import json, os, signal, sys, time
 
 from kafka import KafkaConsumer # type: ignore
 # import redis as redisDB
-from pymongo import MongoClient
 
 # Import func
 from mongo import MongoDB 
-import worker.redis_publisher as redis_publisher
+
+from redis_publisher import RedisPublisher
+
 
 BROKERS    = os.getenv("KAFKA_BROKERS", "localhost:19092")
 GROUP_ID   = os.getenv("KAFKA_GROUP", "jobs-worker-1")
@@ -17,7 +18,7 @@ TTL_SEC    = int(os.getenv("STATUS_TTL", "604800"))  # 7 days
 
 
 mongoClient = MongoDB()
-
+redisClient = RedisPublisher()
 
 consumer = KafkaConsumer(
     TOPIC,
@@ -50,6 +51,8 @@ def set_status(job_id, **fields):
     # redis.expire(key, TTL_SEC)
 
 def process(job):
+    redisClient.set_status(job["id"])
+    # time.sleep(15)
     mongoClient.save_job(job)
     time.sleep(0.5)
     return {"ok": True, "notes": "processed!"}
@@ -67,7 +70,7 @@ def main():
                     job = msg.value
                     jid = job["url"]
 
-                    set_status(jid, status="processing", progress=10)
+                    # set_status(jid, status="processing", progress=10)
                     try:
                         res = process(job)
                         set_status(jid, status="done", progress=100, result=json.dumps(res))

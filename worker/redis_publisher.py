@@ -1,7 +1,9 @@
 import redis # type: ignore
+from typing import Optional, Dict, Any
 from datetime import datetime
 import json
 
+STATUS_TTL = 7 * 24 * 3600  # 7 days
 class RedisPublisher:
   def __init__(self, channel:str = "job.status"):
     self.__client = None
@@ -25,13 +27,16 @@ class RedisPublisher:
     
     key = f"job:{jid}"
     try:
-      payload = json.dumps({
+      payload: Dict[str, Any] ={
         "id": jid,
         "status": status,
         "updatedAt": datetime.now().isoformat()
-      })
+      }
 
-      self.__client.publish(self.__channel, payload)
+      pipe = self.__client.pipeline()
+      pipe.hset(key, mapping=payload)
+      pipe.expire(key, STATUS_TTL)
+      pipe.execute()
 
     except Exception as e:
       print(f"error: {e}")

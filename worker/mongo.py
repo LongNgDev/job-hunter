@@ -52,7 +52,7 @@ class MongoDB:
         raise Exception("Collection is not exist!")
       
       res = self.__coll.update_one(
-         {"url": doc["url"]},
+         {"id": doc["id"]},
          {"$set": doc, "$setOnInsert": {"processedAt": datetime.now()}},
          upsert=True
       )
@@ -60,7 +60,7 @@ class MongoDB:
       print({
         "ok": True,
         "upserted": res.upserted_id is not None,
-        "url": doc["url"],
+        "id": doc["id"],
         "matched_count": res.matched_count,
         "modified_count": res.modified_count,
       })
@@ -72,18 +72,18 @@ class MongoDB:
         if self.__coll is None:
             raise Exception("Collection is not existed!")
         
-        res2 = self.__coll.update_one({"url": doc["url"]}, {"$set": doc})
+        res2 = self.__coll.update_one({"id": doc["id"]}, {"$set": doc})
         print({
             "ok": True,
             "upserted": False,
             "matched_count": res2.matched_count,
             "modified_count": res2.modified_count,
-            "url": doc["url"],
+            "id": doc["id"],
             "note": "duplicate race handled",
         })
     except PyMongoError as e:
         # Any other DB failure
-        print( {"ok": False, "error": str(e), "url": doc.get("url")})
+        print( {"ok": False, "error": str(e), "id": doc.get("id")})
     
     except Exception as e:
         print( {

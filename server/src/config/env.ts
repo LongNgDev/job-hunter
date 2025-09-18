@@ -14,4 +14,8 @@ const get = (key: string, fallback?: string) => {
 
 export const env = {
 	port: Number(get("PORT", "3000")),
+	mongodb: get(
+		"MONGO_URI",
+		"mongodb://admin:admin@mongo:27017/jobhunter?authSource=admin"
+	),
 };
