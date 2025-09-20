@@ -1,13 +1,12 @@
 import redis # type: ignore
 from typing import Optional, Dict, Any
 from datetime import datetime
-import json
+
 
 STATUS_TTL = 7 * 24 * 3600  # 7 days
 class RedisPublisher:
-  def __init__(self, channel:str = "job.status"):
+  def __init__(self):
     self.__client = None
-    self.__channel = channel
     self._connect()
 
 
@@ -21,7 +20,7 @@ class RedisPublisher:
         self.__client = None
 
 
-  def set_status(self, jid, status:str = "In progress", *progress:int):
+  def set_status(self, jid, status:str = "In progress"):
     if not self.__client:
       return False
     

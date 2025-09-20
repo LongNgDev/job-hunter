@@ -40,9 +40,26 @@ class MongoDB:
     self.__db = self.__client.get_database(MONGO_DB)
     self.__coll = self.__db.get_collection(MONGO_COLL)
 
-    # self.__coll.create_index([("url", ASCENDING)], unique = True, background = True)
+    self.__coll.create_index([("url", ASCENDING)], unique = True, background = True)
 
   
+  def set_status(self, jobId:str, status:str="In progress"):
+    try:
+      if self.__coll is None:
+          raise Exception("Collection is not exist!")
+      
+      res = self.__coll.update_one(
+          {"id": jobId},
+          {"$set": {"status": status}},
+          upsert=True
+      )
+
+      print(res.raw_result)
+
+    except Exception as e:
+       print(f"Error: {e}")
+
+
   def save_job(self, payload: JobPayLoad):
     doc = dict(payload)
     

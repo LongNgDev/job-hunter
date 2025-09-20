@@ -1,33 +1,18 @@
-import json, os, signal, sys, time
+import signal, time
 
-from kafka import KafkaConsumer # type: ignore
-# import redis as redisDB
+# Import KafkaClient
+from kafkaClass.client import KafkaClient
 
-# Import func
-from mongo import MongoDB 
-
-from redis_publisher import RedisPublisher
-
-
-BROKERS    = os.getenv("KAFKA_BROKERS", "localhost:19092")
-GROUP_ID   = os.getenv("KAFKA_GROUP", "jobs-worker-1")
-TOPIC      = os.getenv("TOPIC", "job.created")
-REDIS_URL  = os.getenv("REDIS_URI", "redis://localhost:6379/0")
-MONGO_URI  = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
-TTL_SEC    = int(os.getenv("STATUS_TTL", "604800"))  # 7 days
+# Import MongoClient
+from database.mongo import MongoDB 
+# Import Redis
+from database.redis_publisher import RedisPublisher
 
 
 mongoClient = MongoDB()
 redisClient = RedisPublisher()
 
-consumer = KafkaConsumer(
-    TOPIC,
-    bootstrap_servers= BROKERS,
-    group_id=GROUP_ID,
-    auto_offset_reset= "earliest",
-    enable_auto_commit= True,
-    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-)
+consumer = KafkaClient().run()
 
 
 # Global flag to tell our main loop whether to keep running
@@ -40,22 +25,44 @@ def _stop(*_):
 
 # Catch Ctrl+C in terminal (SIGINT) and call _stop instead of crashing
 signal.signal(signal.SIGINT, _stop)
-
 # Catch docker stop / system shutdown (SIGTERM) and call _stop
 signal.signal(signal.SIGTERM, _stop)
 
 
-def set_status(job_id, **fields):
-    key = f"job:{job_id}"
-    # redis.hset(key, mapping=fields)
-    # redis.expire(key, TTL_SEC)
-
 def process(job):
-    redisClient.set_status(job["id"])
-    # time.sleep(15)
-    mongoClient.save_job(job)
-    time.sleep(0.5)
-    return {"ok": True, "notes": "processed!"}
+    try:
+        while not stop:
+            # poll returns a dict: {TopicPartition: [messages]}
+            records = consumer.poll(timeout_ms=1000)
+            if not records:
+                continue
+
+            # loop through message queue to process
+            for _tp, msgs in records.items():
+                for msg in msgs:
+                    # extract data from message
+                    job = msg.value
+                    jid = job["id"]
+
+                    # set_status(jid, status="processing", progress=10)
+                    try:
+                        # Save job to database
+                        mongoClient.save_job(job)
+                        # Initialise status for job progress
+                        mongoClient.set_status(jid)
+                        """ 
+                            Work start here
+                        """
+                        time.sleep(15) # For testing only
+                        mongoClient.set_status(jid, "Complete")
+                    except Exception as e:
+                        mongoClient.set_status(jid, status="failed")
+    except KeyboardInterrupt:
+        print("👋 Stopping worker…")
+    except Exception as e:
+        print(f"Errors: {e}")
+    finally:
+        consumer.close()
 
 def main():
     try:
@@ -68,14 +75,16 @@ def main():
             for _tp, msgs in records.items():
                 for msg in msgs:
                     job = msg.value
-                    jid = job["url"]
+                    jid = job["id"]
 
                     # set_status(jid, status="processing", progress=10)
                     try:
-                        res = process(job)
-                        set_status(jid, status="done", progress=100, result=json.dumps(res))
+                        process(job)
+                        mongoClient.set_status(jid)
+                        time.sleep(15) # For testing only
+                        mongoClient.set_status(jid, "Complete")
                     except Exception as e:
-                        set_status(jid, status="failed", error=str(e))
+                        mongoClient.set_status(jid, status="failed")
     except KeyboardInterrupt:
         print("👋 Stopping worker…")
     except Exception as e:
