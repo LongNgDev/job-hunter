@@ -9,22 +9,22 @@ async function getData(): Promise<JobAd[]> {
 	const raw = await res.json();
 
 	const dataPromises = raw.items.map(
-		async ({ id, companyName, jobTitle, processedAt }: JobAd) => {
-			const res = await fetch(`http://localhost:4000/api/jobs/${id}/status`, {
+		async ({ url, companyName, jobTitle, processedAt, status }: JobAd) => {
+			/* 	const res = await fetch(`http://localhost:4000/api/jobs/${id}/status`, {
 				cache: "no-store",
 				signal: AbortSignal.timeout(5000),
 			});
 			const data = await res.json();
 
 			const { status } = data;
-
+ */
 			processedAt = new Date(processedAt).toLocaleString("en-AU", {
 				timeZone: "Australia/Melbourne",
 				dateStyle: "medium",
 				timeStyle: "short",
 			});
 
-			return { id, companyName, jobTitle, processedAt, status };
+			return { url, companyName, jobTitle, processedAt, status };
 		}
 	);
 

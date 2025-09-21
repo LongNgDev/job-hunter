@@ -29,7 +29,7 @@ signal.signal(signal.SIGINT, _stop)
 signal.signal(signal.SIGTERM, _stop)
 
 
-def process(job):
+def process():
     try:
         while not stop:
             # poll returns a dict: {TopicPartition: [messages]}
@@ -53,6 +53,7 @@ def process(job):
                         """ 
                             Work start here
                         """
+                        print("Work in progress!")
                         time.sleep(15) # For testing only
                         mongoClient.set_status(jid, "Complete")
                     except Exception as e:
@@ -65,32 +66,7 @@ def process(job):
         consumer.close()
 
 def main():
-    try:
-        while not stop:
-            # poll returns a dict: {TopicPartition: [messages]}
-            records = consumer.poll(timeout_ms=1000)
-            if not records:
-                continue
-
-            for _tp, msgs in records.items():
-                for msg in msgs:
-                    job = msg.value
-                    jid = job["id"]
-
-                    # set_status(jid, status="processing", progress=10)
-                    try:
-                        process(job)
-                        mongoClient.set_status(jid)
-                        time.sleep(15) # For testing only
-                        mongoClient.set_status(jid, "Complete")
-                    except Exception as e:
-                        mongoClient.set_status(jid, status="failed")
-    except KeyboardInterrupt:
-        print("👋 Stopping worker…")
-    except Exception as e:
-        print(f"Errors: {e}")
-    finally:
-        consumer.close()
+    process()
 
 if __name__ == "__main__":
     main()

@@ -26,19 +26,19 @@ class MongoDB:
     self.__coll = None
     self._connect_db()
 
-  def _connect_db(self) -> None:
+  def _connect_db(self, URI:str=MONGO_URI, DATABASE:str=MONGO_DB, COLLECTION:str=MONGO_COLL) -> None:
     if self.__coll is not None:
       return
 
-    self.__client = MongoClient(MONGO_URI)
+    self.__client = MongoClient(URI)
     try:
         self.__client.admin.command("ping")
         print("✅ Connected to MongoDB!")
     except Exception as e:
         print("❌ Connection failed:", e)
 
-    self.__db = self.__client.get_database(MONGO_DB)
-    self.__coll = self.__db.get_collection(MONGO_COLL)
+    self.__db = self.__client.get_database(DATABASE)
+    self.__coll = self.__db.get_collection(COLLECTION)
 
     self.__coll.create_index([("url", ASCENDING)], unique = True, background = True)
 

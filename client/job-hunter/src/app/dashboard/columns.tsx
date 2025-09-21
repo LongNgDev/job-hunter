@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 export type JobAd = {
-	id: string;
+	url: string;
 	companyName: string;
 	jobTitle: string;
 	processedAt: string;
@@ -11,7 +11,7 @@ export type JobAd = {
 };
 
 export const columns: ColumnDef<JobAd>[] = [
-	{ accessorKey: "id", header: "ID" },
+	{ accessorKey: "url", header: "Job url" },
 	{ accessorKey: "companyName", header: "Company" },
 	{ accessorKey: "jobTitle", header: "Role" },
 	{ accessorKey: "processedAt", header: "Processed at" },
