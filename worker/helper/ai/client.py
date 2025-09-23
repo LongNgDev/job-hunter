@@ -10,7 +10,7 @@ class AiClient:
     self._url = f"{host.rstrip('/')}/api/generate"
     self.timeout = timeout
 
-  def generate(self, prompt:str, temperature:float = 0.05 , top_p:float = 0.95, max_tokens:int | None = None) -> str:
+  def _generate(self, prompt:str, temperature:float = 0.05 , top_p:float = 0.95, max_tokens:int | None = None) -> str:
     payload: Dict[str, Any] = {
       "model": self.model,
       "prompt": prompt,
@@ -92,7 +92,7 @@ Example format:
 {skills:["RESTful APIs (NodeJS)", "AWS Lambda & API Gateway", "Backend architecture scoping", "AI model integration", "MySQL/MariaDB", "NextJS or NuxtJS"]}
 """
 
-  res=client.generate(f"""IntegraDev - Who are we?
+  res=client._generate(f"""IntegraDev - Who are we?
 Integrated Application Development (IntegraDev) is a subsidiary of Integrafin Holdings plc (Transact) in the UK. We develop the key operational system for Transact – the market leader in the UK financial platform sector. Transact has more than 240,000 clients, with over AU$130BN in funds under administration
 Our software development team is built on a foundation of mentorship, collaboration and quality. Our success is built on a culture of knowledge sharing and an unwavering focus on quality that ensures our high-performing development team produces easy to use, maintainable, and secure software.
 The Role
