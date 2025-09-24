@@ -3,18 +3,30 @@ from .client import AiClient
 import json
 
 class SkillExtractor(AiClient) :
-  def __init__(self, article:str):
+  def __init__(self):
     super().__init__(model="llama3.1:8b")
-    self.__ARTICLE=article
+    self.__SKILLS= [
+    "Java","Python","JavaScript","TypeScript","SQL",
+    "React","NextJS","NodeJS", "Node.js", "next.js", "react.js","Express","Redux","Tailwind","FramerMotion",
+    "MySQL","MongoDB","Redis",
+    "Kafka","Redpanda",
+    "Android",
+    "RESTful","JSON","API", "APIs",
+    "AWS","EC2","S3",
+    "CI/CD",
+    "Docker","Nginx","Linux",
+    "Git","GitHub",
+    "JUnit","Pytest",
+    "Agile","SEO"]
 
 
-  def _clear_article(self):
+  def _process_article(self, article:str):
     PROMPT=f"""
     You are a text cleaner for job advertisements.
     Your task: extract ONLY the job-specific content and output STRICT JSON.
 
     Input (raw job ad):
-    {self.__ARTICLE}
+    {article}
 
     Extraction scope:
     - START at the first role-related heading.
@@ -67,42 +79,66 @@ class SkillExtractor(AiClient) :
     return res
   
   def _filter_skills(self, skill_set:list[str]=[]):
-    SKILL = [
-    "Java","Python","JavaScript","TypeScript","SQL",
-    "React","NextJS","NodeJS", "Node.js", "next.js", "react.js","Express","Redux","Tailwind","FramerMotion",
-    "MySQL","MongoDB","Redis",
-    "Kafka","Redpanda",
-    "Android",
-    "RESTful","JSON","API", "APIs",
-    "AWS","EC2","S3",
-    "CI/CD",
-    "Docker","Nginx","Linux",
-    "Git","GitHub",
-    "JUnit","Pytest",
-    "Agile","SEO"]
-
-    matched = []
-    missing = []
+    matched:list[str] = []
+    missing:list[str] = []
     for skill in skill_set:
         # lowercased compare for safety
-        if any(skill.lower() in mine.lower() or mine.lower() in skill.lower() for mine in SKILL):
+        if any(skill.lower() in mine.lower() or mine.lower() in skill.lower() for mine in self.__SKILLS):
             matched.append(skill)
         else:
             missing.append(skill)
     
-    extra = [mine for mine in SKILL 
-             if not any(mine.lower() in skill.lower() or skill.lower() in mine.lower() for skill in skill_set)]
-    
-
-    print(matched)
-    print(missing)
-    
     return {
         "matched": matched,
         "missing": missing,
-        "extra": extra
     }
 
+  def _filter_responsibilities(self, req:list[str], skills:list[str] | None = []):
+    if not req:
+      return
+    if not skills:
+       print("use pre-set Skills!")
+       skills = self.__SKILLS
+
+    print(req)
+    print(skills)
+     
+    PROMPT = f"""
+    You are a resume responsibility filter.
+
+    Input:
+    - Responsibilities: {req}
+    - My skills: {self.__SKILLS}
+
+    Task:
+    - For each responsibility, check how well it matches my skills.
+    - If a responsibility can be fully supported, give it a high score.
+    - If it partially matches, give it a medium score.
+    - If it requires skills I don’t have, give it a low score and exclude it.
+    - Rephrase responsibilities if they partly match, so they fit my skills.
+
+    Output:
+    - Return ONLY a single JSON object (no code fences, no commentary).
+    - Return only items with score >= 5.
+    - Keys and types must EXACTLY match this schema:
+    {{
+      "Responsibilities": [
+        {{
+          "text": "",
+          "score": [score]
+        }}
+      ]
+    }}
+    - "text" = resume-ready noun phrase.
+    - "score" = integer from 0 to 10 indicating how well the responsibility aligns with my skills.
+    """
+
+    res=self._generate(prompt=PROMPT)
+    print(res)
+
+  def _generate_summary(self):
+     return
+     
 
 
 if __name__ == "__main__":
@@ -149,56 +185,9 @@ Topsort Culture
 •	Meditation App, Birthday and Anniversary Celebrations - we like little surprises and remember the key moments to celebrate with you! 
   """
 
-  test="""
-  At Centorrino Technologies (CT), we’re more than just tech—we’re a community that goes beyond expectations. We’ve been recognised as a Great Place to Work in 2024-2025 and one of the Best Places to Work Medium & Large Size in Australia for 2025, with an outstanding eNPS score of 68. And we’re not stopping there. We're on a mission to redefine the customer experience, and we need a passionate Software Developer to join our Technology team in Melbourne.
-
-Requirements
-
-What You'll Do:
-
-Crafting new features, enhancements, and resolving bugs 
-Designing and implementing front-end components following industry conventions 
-Managing the technical design, implementation, and maintenance of back-end APIs and databases 
-Collaborating seamlessly with other team members to collectively troubleshoot challenges 
-Continuous integration, deployment, and delivery 
-Adhering to automated testing methodologies and ensuring quality assurance 
-Following best security practices and industry standards  
-Experience in the following areas is a significant plus: 
-
-JavaScript 
-TypeScript 
-Next.js & React 
-Docker 
-Kubernetes 
-PostgreSQL 
-Medusa.js 
-What You'll Bring:
-
-A well-organised, self-motivated, and self-directed approach 
-Stellar communication, clears assumptions and seeks clarification 
-A flexible and enthusiastic attitude, readily embracing new challenges and eager for self-improvement 
-Dedication to crafting reliable, maintainable and clear code 
-Stays informed on emerging technologies and applies them effectively 
-Effective decision-making abilities based on research and experience 
-Benefits
-
-Why You'll Love Working Here:
-
-Our company is more than just a workplace, it's a hub of inspiration and creativity where employees love to work! Here's why:
-
-Hybrid working (for majority of our roles) with team anchor days to support collaboration.
-Extensive training and development opportunities that enable continual growth as part of your career planning.
-Extensive discounts and benefits to maximise your money.
-A choice of your IT equipment to maximise your success and access to cost-price tech for your personal needs.
-Fun team events to celebrate achievements and connect with colleagues outside work as part of our engaging culture.
-CT celebrates diversity and enables every voice to be heard as we drive to create the world we want. Apply today and be part of a team that values innovation, inclusivity, variety and diverse backgrounds.
-
-Note: A valid Vulnerable People / Working with Children Check (WWCC) and Police Check are required.
-"""
-
-  # extractor = SkillExtractor(article=ARTICLE)
-  extractor = SkillExtractor(article=test)
-  res = extractor._clear_article()
+  extractor = SkillExtractor()
+  res = extractor._process_article(article=ARTICLE)
 
   data:list[str] = res.get("response").get("technical_skills")
-  extractor._filter_skills(skill_set=data)
+  skills: list[str]|None=extractor._filter_skills(skill_set=data).get("matched")
+  extractor._filter_responsibilities(req=res.get("response").get("responsibilities"))
