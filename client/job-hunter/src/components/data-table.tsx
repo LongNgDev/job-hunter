@@ -32,6 +32,7 @@ import {
 	IconChevronRight,
 	IconChevronsLeft,
 	IconChevronsRight,
+	IconPlus,
 } from "@tabler/icons-react";
 
 interface DataTableProps<TData, TValue> {
@@ -51,9 +52,15 @@ export function DataTable<TData, TValue>({
 	});
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="overflow-hidden rounded-md border">
+			<div className="flex justify-end">
+				<Button variant={"outline"} className="uppercase w-fit">
+					<IconPlus />
+					Add Job
+				</Button>
+			</div>
+			<div className="overflow-hidden border rounded-md">
 				<Table>
-					<TableHeader>
+					<TableHeader className="sticky top-0 z-10 bg-muted">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
@@ -104,12 +111,12 @@ export function DataTable<TData, TValue>({
 
 			{/* Pagination */}
 			<div className="flex items-center justify-between px-4">
-				<div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+				<div className="flex-1 hidden text-sm text-muted-foreground lg:flex">
 					{table.getFilteredSelectedRowModel().rows.length} of{" "}
 					{table.getFilteredRowModel().rows.length} row(s) selected.
 				</div>
-				<div className="flex w-full items-center gap-8 lg:w-fit">
-					<div className="hidden items-center gap-2 lg:flex">
+				<div className="flex items-center w-full gap-8 lg:w-fit">
+					<div className="items-center hidden gap-2 lg:flex">
 						<Label htmlFor="rows-per-page" className="text-sm font-medium">
 							Rows per page
 						</Label>
@@ -133,14 +140,14 @@ export function DataTable<TData, TValue>({
 							</SelectContent>
 						</Select>
 					</div>
-					<div className="flex w-fit items-center justify-center text-sm font-medium">
+					<div className="flex items-center justify-center text-sm font-medium w-fit">
 						Page {table.getState().pagination.pageIndex + 1} of{" "}
 						{table.getPageCount()}
 					</div>
-					<div className="ml-auto flex items-center gap-2 lg:ml-0">
+					<div className="flex items-center gap-2 ml-auto lg:ml-0">
 						<Button
 							variant="outline"
-							className="hidden h-8 w-8 p-0 lg:flex"
+							className="hidden w-8 h-8 p-0 lg:flex"
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>

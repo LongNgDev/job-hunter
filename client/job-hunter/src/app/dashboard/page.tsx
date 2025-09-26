@@ -1,5 +1,7 @@
-import { columns, JobAd } from "./columns";
-import { DataTable } from "./data-table";
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import SectionCards from "@/components/section-card";
+import { columns, JobAd } from "@/components/columns";
+import { DataTable } from "@/components/data-table";
 
 async function getData(): Promise<JobAd[]> {
 	const res = await fetch("http://localhost:4000/api/jobs", {
@@ -33,12 +35,16 @@ async function getData(): Promise<JobAd[]> {
 	return jobs;
 }
 
-export default async function DemoPage() {
+async function page() {
 	const data = await getData();
 
 	return (
-		<div className="container mx-auto py-10">
+		<div className="flex flex-col gap-6 w-dvw p-4 max-w-[100rem] m-auto min-w-md">
+			<SectionCards />
+			<ChartAreaInteractive />
 			<DataTable columns={columns} data={data} />
 		</div>
 	);
 }
+
+export default page;
