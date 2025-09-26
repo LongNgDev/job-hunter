@@ -13,8 +13,8 @@ import { Badge } from "./ui/badge";
 
 function SectionCards() {
 	return (
-		<div className="m-auto max-w-[100rem] min-w-sm">
-			<div className="grid grid-rows-4 gap-4 m-4 sm:grid-rows-2 sm:grid-cols-2 lg:grid-cols-4 ">
+		<div className="m-auto max-w-[100rem] min-w-sm w-full">
+			<div className="grid grid-rows-4 gap-4 my-4 sm:grid-rows-2 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-1 ">
 				<Card className="flex flex-col gap-10">
 					<CardHeader>
 						<CardDescription>Total Applications</CardDescription>
